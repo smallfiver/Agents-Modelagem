@@ -224,28 +224,27 @@ A skill já tem esses limites embutidos — vale entender por que existem, não
 
 ## 7. Orquestrador + sub-agents
 
-O `SKILL.md` é um **orquestrador enxuto**: ele não executa o trabalho pesado,
-despacha sub-agents especialistas e confere cada entrega. Ganhos: contexto do
-orquestrador limpo (HTML bruto e logs de ffmpeg ficam nos sub-agents),
-ordem fixa com gates entre as fases, e um QA que não é quem construiu.
+O `SKILL.md` é um **orquestrador que só orquestra**: pergunta, despacha,
+confere status e entrega. **Cada tarefa tem um sub-agent próprio** (19 no
+total), e eles conversam por arquivos em `_handoff/`. O mapa completo e vivo
+está em [`CLAUDE.md`](CLAUDE.md).
 
-| agent | fase | entrega |
-|---|---|---|
-| `clonagem-recon` | 1. Cloaking (HTTP e JS) | `_handoff/01-recon.md` |
-| `clonagem-ocultos` | 2. Botões/links ocultos (só analisa) | `_handoff/02-ocultos.md` |
-| `clonagem-mapa` | 3. Mapeamento + base limpa + tipo sugerido | `_handoff/03-mapa.md` |
-| `clonagem-vsl` | 4. VSL, pitch, checkout (se houver vídeo) | `_handoff/04-vsl.md` |
-| `clonagem-builder` | 5. Montagem conforme o tipo | `_handoff/05-build.md` |
-| `clonagem-qa` | 6. Gate pré-deploy (só reprova/aprova) | `_handoff/06-qa.md` |
-| `clonagem-deploy` | 7. Vercel + curl + RELATORIO.md | `_handoff/07-deploy.md` |
+**Perguntas no início** (uma só vez): tipo da página (front-end, upsell,
+downsell, back-redirect), destino (Vercel ou Lovable) e se transcreve a VSL.
+Depois, só quando necessário: se o mapa divergir do tipo, se houver 2+ VSLs
+(clonar só a principal ou todas), domínio próprio.
 
-Ordem sequencial: cloaking → ocultos → mapa → **pergunta o tipo** (front-end,
-upsell, downsell, back-redirect) → vsl → builder → qa (reprovado volta ao
-builder, máx. 2 ciclos) → **pergunta o domínio** → deploy. As perguntas são
-sempre feitas pelo orquestrador; sub-agents nunca falam com o usuário nem
-mexem em DNS sozinhos. O playbook completo
-continua em `references/playbook-detalhado.md`. O instalador copia os agents
-para `~/.claude/agents/`.
+| fase | agents |
+|---|---|
+| Diagnóstico | `recon` → `cloaking` → `ocultos` → `mapa` → `limpeza` |
+| Vídeo (se houver) | `vsl-detector` → por variante: `pitch` ∥ `checkout` ∥ `vsl-download` → `transcricao` (opcional) |
+| Construção | front-end: `presell` ∥ `oferta` · `upsell-downsell` · `backredirect` |
+| Gate | `qa` (reprovado volta ao agent de construção, máx. 2 ciclos) |
+| Entrega | `deploy-vercel` (+ `dominio` se pedido) ou `lovable` → `relatorio` |
+
+Todos têm o prefixo `clonagem-` e vivem em `agents/`; o instalador copia para
+`~/.claude/agents/`. O playbook completo continua em
+`references/playbook-detalhado.md`.
 
 ---
 
@@ -254,14 +253,13 @@ para `~/.claude/agents/`.
 ```
 .
 ├── README.md                          ← este arquivo
-├── agents/                            ← sub-agents (vão pra ~/.claude/agents/)
-│   ├── clonagem-recon.md
-│   ├── clonagem-ocultos.md
-│   ├── clonagem-mapa.md
-│   ├── clonagem-vsl.md
-│   ├── clonagem-builder.md
-│   ├── clonagem-qa.md
-│   └── clonagem-deploy.md
+├── CLAUDE.md                          ← mapa vivo da arquitetura
+├── agents/                            ← 19 sub-agents (vão pra ~/.claude/agents/)
+│   └── clonagem-*.md                      recon, cloaking, ocultos, mapa, limpeza,
+│                                          vsl-detector, pitch, checkout, vsl-download,
+│                                          transcricao, presell, oferta, upsell-downsell,
+│                                          backredirect, qa, deploy-vercel, lovable,
+│                                          dominio, relatorio
 └── Agents-Modelagem/    ← a skill orquestradora, pronta pra copiar
     ├── SKILL.md
     ├── references/
