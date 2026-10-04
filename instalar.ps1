@@ -1,15 +1,15 @@
-# ============================================================================
+﻿# ============================================================================
 # Instalador — Clonar Funil & Detectar Cloaking (Windows / PowerShell)
 # ============================================================================
 # Roda tudo do zero: checa/instala Node.js, Git, ffmpeg e o Claude Code,
 # clona este repositório (se ainda não estiver clonado) e instala a skill
-# em %USERPROFILE%\.claude\skills\clonar-funil-detectar-cloaking\
+# em %USERPROFILE%\.claude\skills\Agents-Modelagem\
 #
 # Uso:
 #   1. Clone este repo primeiro (precisa de acesso de colaborador, é privado):
-#        git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git
+#        git clone https://github.com/smallfiver/Agents-Modelagem.git
 #   2. Entre na pasta clonada e rode este script:
-#        cd clonar-funil-detectar-cloaking
+#        cd Agents-Modelagem
 #        powershell -ExecutionPolicy Bypass -File .\instalar.ps1
 # ============================================================================
 
@@ -60,12 +60,12 @@ Write-Host ""
 Write-Host "== Instalando a skill ==" -ForegroundColor Cyan
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$origemSkill = Join-Path $scriptDir "clonar-funil-detectar-cloaking"
+$origemSkill = Join-Path $scriptDir "Agents-Modelagem"
 $destinoSkills = Join-Path $env:USERPROFILE ".claude\skills"
-$destinoSkill = Join-Path $destinoSkills "clonar-funil-detectar-cloaking"
+$destinoSkill = Join-Path $destinoSkills "Agents-Modelagem"
 
 if (-not (Test-Path $origemSkill)) {
-    Write-Host "[erro] Não achei a pasta 'clonar-funil-detectar-cloaking' ao lado deste script." -ForegroundColor Red
+    Write-Host "[erro] Não achei a pasta 'Agents-Modelagem' ao lado deste script." -ForegroundColor Red
     Write-Host "Confirme que você rodou este .ps1 de dentro da pasta do repositório clonado." -ForegroundColor Red
     exit 1
 }
@@ -82,8 +82,19 @@ if (Test-Path $destinoSkill) {
 Copy-Item -Recurse -Force $origemSkill $destinoSkill
 Write-Host "[ok] Skill instalada em: $destinoSkill" -ForegroundColor Green
 
+# ---- Instalar os sub-agents (time do orquestrador) ----
+$origemAgents = Join-Path $scriptDir "agents"
+$destinoAgents = Join-Path $env:USERPROFILE ".claude\agents"
+if (Test-Path $origemAgents) {
+    New-Item -ItemType Directory -Force -Path $destinoAgents | Out-Null
+    Copy-Item -Force (Join-Path $origemAgents "*.md") $destinoAgents
+    Write-Host "[ok] Sub-agents instalados em: $destinoAgents" -ForegroundColor Green
+} else {
+    Write-Host "[aviso] Pasta 'agents' não encontrada — o orquestrador vai funcionar sem sub-agents dedicados." -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "== Tudo pronto ==" -ForegroundColor Cyan
 Write-Host "1. Feche e reabra o terminal (garante que o PATH do Node/Git/ffmpeg atualizou)."
 Write-Host "2. Rode 'claude' numa pasta qualquer para autenticar (abre o navegador)."
-Write-Host "3. Digite '/clonar-funil-detectar-cloaking' — se aparecer no autocomplete, a skill está instalada."
+Write-Host "3. Digite '/Agents-Modelagem' — se aparecer no autocomplete, a skill está instalada."

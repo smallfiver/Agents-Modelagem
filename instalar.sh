@@ -3,11 +3,11 @@
 # Instalador — Clonar Funil & Detectar Cloaking (macOS / Linux)
 # ============================================================================
 # Checa/instala Node.js, Git, ffmpeg e o Claude Code, e instala a skill
-# em ~/.claude/skills/clonar-funil-detectar-cloaking/
+# em ~/.claude/skills/Agents-Modelagem/
 #
 # Uso:
-#   git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git
-#   cd clonar-funil-detectar-cloaking
+#   git clone https://github.com/smallfiver/Agents-Modelagem.git
+#   cd Agents-Modelagem
 #   bash instalar.sh
 # ============================================================================
 
@@ -77,12 +77,12 @@ echo ""
 echo "== Instalando a skill =="
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ORIGEM_SKILL="$SCRIPT_DIR/clonar-funil-detectar-cloaking"
+ORIGEM_SKILL="$SCRIPT_DIR/Agents-Modelagem"
 DESTINO_SKILLS="$HOME/.claude/skills"
-DESTINO_SKILL="$DESTINO_SKILLS/clonar-funil-detectar-cloaking"
+DESTINO_SKILL="$DESTINO_SKILLS/Agents-Modelagem"
 
 if [ ! -d "$ORIGEM_SKILL" ]; then
-  echo "[erro] Não achei a pasta 'clonar-funil-detectar-cloaking' ao lado deste script."
+  echo "[erro] Não achei a pasta 'Agents-Modelagem' ao lado deste script."
   echo "Confirme que você rodou este instalar.sh de dentro da pasta do repositório clonado."
   exit 1
 fi
@@ -97,8 +97,19 @@ fi
 cp -r "$ORIGEM_SKILL" "$DESTINO_SKILL"
 echo "[ok] Skill instalada em: $DESTINO_SKILL"
 
+# ---- Instalar os sub-agents (time do orquestrador) ----
+ORIGEM_AGENTS="$SCRIPT_DIR/agents"
+DESTINO_AGENTS="$HOME/.claude/agents"
+if [ -d "$ORIGEM_AGENTS" ]; then
+  mkdir -p "$DESTINO_AGENTS"
+  cp "$ORIGEM_AGENTS"/*.md "$DESTINO_AGENTS/"
+  echo "[ok] Sub-agents instalados em: $DESTINO_AGENTS"
+else
+  echo "[aviso] Pasta 'agents' não encontrada — o orquestrador vai funcionar sem sub-agents dedicados."
+fi
+
 echo ""
 echo "== Tudo pronto =="
 echo "1. Feche e reabra o terminal (garante que o PATH atualizou)."
 echo "2. Rode 'claude' numa pasta qualquer para autenticar (abre o navegador)."
-echo "3. Digite '/clonar-funil-detectar-cloaking' — se aparecer no autocomplete, a skill está instalada."
+echo "3. Digite '/Agents-Modelagem' — se aparecer no autocomplete, a skill está instalada."

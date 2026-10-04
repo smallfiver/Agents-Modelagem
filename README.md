@@ -31,7 +31,7 @@ faz tudo de uma vez.
 
 ```bash
 git clone <URL-DESTE-REPO>
-cd clonar-funil-detectar-cloaking
+cd Agents-Modelagem
 ```
 
 Windows (PowerShell):
@@ -55,18 +55,20 @@ git clone <URL-DESTE-REPO>
 npm install -g @anthropic-ai/claude-code
 ```
 
-Copie a pasta `clonar-funil-detectar-cloaking/` inteira para dentro de:
+Copie a pasta `Agents-Modelagem/` inteira para dentro de:
 
 ```
-%USERPROFILE%\.claude\skills\clonar-funil-detectar-cloaking\
+%USERPROFILE%\.claude\skills\Agents-Modelagem\
 ```
+
+e os arquivos de `agents/*.md` para `%USERPROFILE%\.claude\agents\`.
 
 Confirme que ficaram lá dentro: `SKILL.md`, a pasta `references/` e a pasta
 `scripts/`. Se faltar uma, a cópia ficou incompleta.
 
 **Testar:** abra o Claude Code numa pasta de projeto qualquer, rode `claude`
 pra autenticar (abre o navegador na primeira vez), e digite
-`/clonar-funil-detectar-cloaking` — se aparecer no autocomplete, está
+`/Agents-Modelagem` — se aparecer no autocomplete, está
 instalada.
 
 Pra manter atualizado depois, é só `git pull` neste repo e rodar o
@@ -81,7 +83,7 @@ completo da skill e já sai executando: reconhecimento, cloaking, VSL,
 limpeza, montagem, validação, deploy e relatório.
 
 ```
-/clonar-funil-detectar-cloaking https://URL-DA-OFERTA-AQUI/
+/Agents-Modelagem https://URL-DA-OFERTA-AQUI/
 
 Replicar essa oferta por completo, seguindo o playbook padrão:
 - Checar cloaking antes de clonar (HTTP com 3+ identidades e depois confirmar
@@ -220,14 +222,50 @@ A skill já tem esses limites embutidos — vale entender por que existem, não
 
 ---
 
+## 7. Orquestrador + sub-agents
+
+O `SKILL.md` é um **orquestrador enxuto**: ele não executa o trabalho pesado,
+despacha sub-agents especialistas e confere cada entrega. Ganhos: contexto do
+orquestrador limpo (HTML bruto e logs de ffmpeg ficam nos sub-agents),
+ordem fixa com gates entre as fases, e um QA que não é quem construiu.
+
+| agent | fase | entrega |
+|---|---|---|
+| `clonagem-recon` | 1. Cloaking (HTTP e JS) | `_handoff/01-recon.md` |
+| `clonagem-ocultos` | 2. Botões/links ocultos (só analisa) | `_handoff/02-ocultos.md` |
+| `clonagem-mapa` | 3. Mapeamento + base limpa + tipo sugerido | `_handoff/03-mapa.md` |
+| `clonagem-vsl` | 4. VSL, pitch, checkout (se houver vídeo) | `_handoff/04-vsl.md` |
+| `clonagem-builder` | 5. Montagem conforme o tipo | `_handoff/05-build.md` |
+| `clonagem-qa` | 6. Gate pré-deploy (só reprova/aprova) | `_handoff/06-qa.md` |
+| `clonagem-deploy` | 7. Vercel + curl + RELATORIO.md | `_handoff/07-deploy.md` |
+
+Ordem sequencial: cloaking → ocultos → mapa → **pergunta o tipo** (front-end,
+upsell, downsell, back-redirect) → vsl → builder → qa (reprovado volta ao
+builder, máx. 2 ciclos) → **pergunta o domínio** → deploy. As perguntas são
+sempre feitas pelo orquestrador; sub-agents nunca falam com o usuário nem
+mexem em DNS sozinhos. O playbook completo
+continua em `references/playbook-detalhado.md`. O instalador copia os agents
+para `~/.claude/agents/`.
+
+---
+
 ## Estrutura deste repositório
 
 ```
 .
 ├── README.md                          ← este arquivo
-└── clonar-funil-detectar-cloaking/    ← a skill em si, pronta pra copiar
+├── agents/                            ← sub-agents (vão pra ~/.claude/agents/)
+│   ├── clonagem-recon.md
+│   ├── clonagem-ocultos.md
+│   ├── clonagem-mapa.md
+│   ├── clonagem-vsl.md
+│   ├── clonagem-builder.md
+│   ├── clonagem-qa.md
+│   └── clonagem-deploy.md
+└── Agents-Modelagem/    ← a skill orquestradora, pronta pra copiar
     ├── SKILL.md
     ├── references/
+    │   ├── playbook-detalhado.md
     │   ├── deploy-vercel.md
     │   ├── estrutura-pasta-oferta.md
     │   ├── extrair-vsl-vturb.md

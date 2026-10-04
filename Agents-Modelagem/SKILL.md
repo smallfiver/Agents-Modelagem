@@ -1,179 +1,105 @@
 ---
-name: clonar-funil-detectar-cloaking
-description: Clona ofertas/funis de VSL de qualquer domínio de forma completa — checa cloaking, extrai o vídeo (inclusive testes A/B), investiga o checkout real, remove todo rastreamento (Meta Pixel, GTM, UTMify visível e oculto/ofuscado, scripts de atribuição), monta uma presell obrigatória antes da VSL, faz deploy na Vercel e entrega tudo organizado numa pasta por oferta com um RELATORIO.md padronizado. Use sempre que o usuário mandar um link de página de vendas/VSL e pedir para "replicar", "clonar", "copiar esse funil/oferta", "limpar o código/tracking/pixel/UTM dessa oferta", "baixar o vídeo/VSL", "criar uma presell", ou quando pedir para "investigar/descobrir/provar cloaking", "ver a oferta real por trás do anúncio". Também aciona quando o usuário pede para montar um pacote pronto pra subir na Vercel ou Lovable a partir de um domínio existente, ou pede pra achar/extrair o link do checkout de uma oferta.
+name: Agents-Modelagem
+description: Orquestrador que clona ofertas/funis de VSL de qualquer domínio delegando cada fase a sub-agents especialistas em ordem fixa (cloaking, botões ocultos, mapeamento+limpeza, tipo de página front-end/upsell/downsell/back-redirect, VSL, montagem, QA, deploy+relatório). Checa cloaking, extrai o vídeo (inclusive testes A/B), investiga o checkout real, remove todo rastreamento (Meta Pixel, GTM, UTMify visível e oculto/ofuscado), monta presell obrigatória antes da VSL, faz deploy na Vercel e entrega tudo numa pasta por oferta com RELATORIO.md padronizado. Use sempre que o usuário mandar um link de página de vendas/VSL e pedir para "replicar", "clonar", "copiar esse funil/oferta", "limpar o código/tracking/pixel/UTM", "baixar o vídeo/VSL", "criar uma presell", ou "investigar/descobrir/provar cloaking", "ver a oferta real por trás do anúncio", "achar/extrair o link do checkout". Também aciona para montar pacote pronto pra Vercel/Lovable a partir de um domínio existente.
 ---
 
-# Clonar funil + detectar cloaking
+# Orquestrador — Clonar funil + detectar cloaking
 
-Playbook operacional pra clonar ofertas de vendas/VSL de forma limpa (sem
-rastreamento) e pra provar tecnicamente quando um domínio está fazendo
-cloaking. Os dois fluxos compartilham a mesma base: baixar o que diferentes
-"visitantes" recebem e comparar.
+Você é o **orquestrador**. Não executa o trabalho pesado: divide em fases,
+despacha **sub-agents especialistas** (tool `Agent`), confere os resultados e
+decide o próximo passo. Isso mantém seu contexto limpo (HTML bruto, logs de
+ffmpeg e saída de grep ficam dentro dos sub-agents) e permite paralelismo.
 
-**Por que isso importa fazer bem feito:** a diferença entre uma clonagem
-que "parece funcionar" e uma que resiste a teste real é sempre a mesma —
-validar de verdade (testando a lógica no navegador, conferindo grep de
-tracking residual, comparando duração do vídeo) em vez de confiar só na
-primeira leitura do HTML. Já corrigimos, ao vivo, dois erros reais desse
-tipo: um vídeo recomprimido em background que ficou truncado sem avisar
-(`ffprobe` pegou), e uma página clonada simplificada demais que perdeu
-metade do layout original (o usuário reclamou e corrigimos). Os dois viram
-lição nas seções abaixo — leia com atenção pra não repetir.
+O detalhe de cada passo, com as lições aprendidas, está em
+`references/playbook-detalhado.md` — os sub-agents leem a parte deles; **você
+só precisa dele se for intervir/corrigir uma fase**.
 
-## Fluxo 1 — Clonar uma oferta completa
+## Time de sub-agents
 
-### Passo 1: Reconhecimento
-```bash
-curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120" \
-  -e "https://SEU-DOMINIO/" "https://SEU-DOMINIO/pagina/" -o page.html
-python scripts/mapear_pagina.py page.html
+| agent (`subagent_type`) | fase | entrega em `_handoff/` |
+|---|---|---|
+| `clonagem-recon` | 1. Reconhecimento + cloaking (HTTP e JS) | `01-recon.md` |
+| `clonagem-ocultos` | 2. Análise de botões/links ocultos (só lê) | `02-ocultos.md` |
+| `clonagem-mapa` | 3. Mapeamento completo + base limpa + tipo sugerido | `03-mapa.md` |
+| `clonagem-vsl` | 4. VSL, pitch, checkout real (se houver vídeo) | `04-vsl.md` |
+| `clonagem-builder` | 5. Montagem final conforme o tipo | `05-build.md` |
+| `clonagem-qa` | 6. Validação independente (gate pré-deploy) | `06-qa.md` |
+| `clonagem-deploy` | 7. Deploy Vercel + validação + RELATORIO.md | `07-deploy.md` |
+
+Se os agents não estiverem instalados (`~/.claude/agents/clonagem-*.md`),
+rode o instalador do repo (`instalar.ps1` / `instalar.sh`) ou use
+`general-purpose` passando o prompt do arquivo `agents/<nome>.md`.
+
+## Contrato de handoff (como as fases conversam)
+
+- Pasta de trabalho: `C:\Ofertas\<Nome-Da-Oferta>\` (estrutura em
+  `references/estrutura-pasta-oferta.md`). Crie também `_handoff\`.
+- Cada sub-agent **lê** os handoffs anteriores e **escreve o seu** `.md` curto
+  (≤ 40-50 linhas): status (`OK`/`BLOQUEADO`), fatos extraídos, caminhos,
+  pendências. O fim da resposta dele repete só status + decisão necessária.
+- **Passe nomes e caminhos no prompt, nunca o conteúdo.** Cada sub-agent
+  começa sem contexto: o prompt traz URL, `fbclid` (se houver),
+  `<Nome-Da-Oferta>`, pasta e, a partir da fase 4, o `tipo`.
+
+## Fluxo (sequencial — cada fase depende da anterior)
+
 ```
-Isso lista plataforma provável, player de vídeo, trackers presentes, e avisa
-se achou padrão de ofuscação (`atob(`) — pista de pixel escondido.
-
-### Passo 2: Se a URL veio com `fbclid` (link de anúncio ativo) — checar cloaking primeiro
-```bash
-python scripts/checar_cloaking.py "https://SEU-DOMINIO/pagina/" --fbclid "O_FBCLID_QUE_O_USUARIO_MANDOU"
-```
-Se as respostas forem idênticas entre as 4 identidades, não há cloaking no
-nível HTTP — mas isso NÃO descarta cloaking via JavaScript. Ver Fluxo 2 pra
-como confirmar isso com navegador real.
-
-### Passo 3: Extrair a VSL, o momento do pitch, e o checkout real
-Ver `references/extrair-vsl-vturb.md` — cobre: achar o `player.js`
-(inclusive testes A/B com múltiplas variações e pesos de tráfego), extrair
-o `range:{start:SEGUNDOS}` que é o momento exato do pitch, extrair o link
-de checkout real (que geralmente está dentro do `player.js`, não no HTML —
-mais confiável que confiar em scripts de atribuição que às vezes referenciam
-domínios desatualizados), e baixar o vídeo via ffmpeg do CDN.
-
-Se o vídeo passar de ~95MB, recomprima ANTES de tentar o deploy:
-```bash
-python scripts/comprimir_vsl_2pass.py vsl-original.mp4 vsl-compact.mp4 --target-mb 90
-```
-**Rode isso em foreground, não em background** com timeout curto — um
-encode longo interrompido no meio produz um arquivo truncado
-(`moov atom not found`) sem erro óbvio na hora. O script já verifica a
-duração final contra a original no fim; não pule essa checagem.
-
-### Passo 4: Decodificar qualquer script ofuscado encontrado
-Se `mapear_pagina.py` (ou uma leitura manual do HTML) achar um bloco tipo
-`atob("...")` no `<head>`, decodifique em vez de ignorar:
-```bash
-python scripts/decodificar_pixel_ofuscado.py page.html
-```
-Isso revela qual pixel/tracker de verdade está escondido ali (visto na
-prática: um pixel UTMify carregado dessa forma pra evadir scanners simples
-de palavra-chave). Documente o que foi encontrado no relatório.
-
-### Passo 5: Montar a estrutura da oferta (pasta + presell + reveal automático)
-Ver `references/estrutura-pasta-oferta.md` em detalhe. Resumo:
-- Toda oferta vai em `C:\Ofertas\<Nome-Da-Oferta>\{presell,oferta,vsl}\`
-- A **presell é obrigatória** — página de explicação com botão de CTA **no
-  topo** (não enterrado embaixo de texto), que ao clicar redireciona pra
-  página da oferta repassando UTMs
-- A **página da oferta replica o layout original inteiro** (mesmo CSS,
-  mesma estrutura, mesmos depoimentos/prova social/footer) — só troca o
-  player de terceiros por `<video>` self-hosted e remove tracking. **Não
-  simplifique o layout** — já corrigimos esse erro uma vez a pedido do
-  usuário; cortar a prova social/depoimentos faz a página "não ficar igual
-  à original", que é exatamente o oposto do pedido.
-- O botão de checkout é revelado automaticamente quando o `<video>` atinge
-  o segundo do pitch (`DELAY_REVEAL`), via listener de `timeupdate` — não
-  precisa do player de terceiros pra isso.
-
-### Passo 6: Limpar todo o tracking
-Ver `references/trackers-para-remover.md` pra lista completa e o esquema de
-decodificação de pixels ofuscados. Ao final, confirme com grep que deu zero:
-```bash
-grep -icE 'fbq\(|gtag\(|googletagmanager|connect\.facebook|utm_source=|clarity|hotjar|converteai|vturb|utmify' index.html
+recon ─► ocultos ─► mapa ─► [pergunta: tipo?] ─► vsl* ─► builder ─► qa ─► [pergunta: domínio?] ─► deploy
+(cloaking) (só lê)  (limpa)    front-end /         ▲        └─ reprovou: volta ao builder (máx. 2)
+                               upsell / downsell /   * só se houver vídeo
+                               back-redirect / outro
 ```
 
-**Dois padrões NÃO entram no clone por padrão** (mas são documentados no
-relatório, não descartados silenciosamente): sequestro do botão voltar
-(history hijack) e banners de urgência com data falsa (sempre "hoje"). São
-comportamentos manipulativos, não conteúdo de marketing normal — trate
-diferente do resto do layout, que deve ser fielmente replicado.
+1. **Preparar** — defina `<Nome-Da-Oferta>` (do domínio, minúsculas com hífen)
+   e crie `C:\Ofertas\<Nome>\{presell,oferta,vsl,_handoff}`.
+2. **`clonagem-recon`** — cloaking primeiro. Se `01-recon.md` disser **cloaking
+   confirmado** ou algo que muda o escopo, mostre o resumo e pergunte se
+   continua.
+3. **`clonagem-ocultos`** — lista tudo que está escondido e o que revela; não
+   edita nada.
+4. **`clonagem-mapa`** — inventário completo + base limpa estruturada (tracking
+   e ocultos removidos) + **tipo sugerido** com evidências.
+5. **Pergunta ao usuário: tipo da página** (`AskUserQuestion`). Opções:
+   front-end (VSL/presell), upsell, downsell, back-redirect, outro. Coloque
+   como primeira opção "(Recomendado)" o tipo sugerido em `03-mapa.md`, com a
+   evidência em uma linha. O `tipo` escolhido segue no prompt de todas as
+   fases seguintes.
+6. **`clonagem-vsl`** — só se `03-mapa.md` mostrar player/vídeo.
+7. **`clonagem-builder`** — monta conforme o `tipo` (front-end: presell +
+   oferta + reveal; upsell/downsell: aceitar/recusar sem presell;
+   back-redirect: página standalone sem history hijack).
+8. **Gate `clonagem-qa`** — não corrige, só reprova com lista de falhas.
+   Reprovou → devolve as falhas ao builder e roda o QA de novo. Máx. 2 ciclos;
+   depois traga ao usuário.
+9. **Pergunta ao usuário: domínio próprio?** (`AskUserQuestion`). Sub-agents
+   nunca falam com o usuário nem mexem em DNS.
+10. **`clonagem-deploy`** — deploy, curl, `RELATORIO.md`.
+11. **Entrega** — leia só `07-deploy.md` e responda: URLs no ar, tipo,
+    pitch, checkout, status de cloaking, tracking removido, pendências.
 
-### Passo 7: Validar antes do deploy
-- Simule a lógica de reveal via JS (ver `references/estrutura-pasta-oferta.md`)
-  em vez de assistir o vídeo inteiro
-- Confira 0 imagens quebradas, sem overflow horizontal no mobile (375px)
-- Rode o grep de tracking residual
+Funil com várias páginas (front-end + upsell + downsell + back-redirect):
+rode o fluxo uma vez por página, cada uma em `C:\Ofertas\<Nome>\<tipo>\`,
+e registre a sequência do funil no `RELATORIO.md`.
 
-### Passo 8: Deploy
-Ver `references/deploy-vercel.md` — cobre o limite de 100MB por arquivo
-(que trava o deploy se o vídeo não foi recomprimido a tempo) e como validar
-o deploy publicado via curl em vez de só confiar no "Aliased ✓".
+## Só detectar cloaking (Fluxo 2)
 
-### Passo 8.5: Domínio próprio (opcional) — sempre perguntar antes
-Depois do deploy, a oferta já está no ar em `*.vercel.app`. Conectar um
-domínio próprio (ex: registrado na Hostinger) é opcional — **sempre
-pergunte ao usuário se ele quer conectar um domínio agora antes de fazer
-qualquer configuração de DNS**, nunca decida isso sozinho. Ver
-`references/dominio-hostinger-vercel.md` pro passo a passo completo:
-como pegar os registros DNS certos da Vercel, e as 3 formas de configurar
-do lado da Hostinger dependendo do que estiver disponível na sessão
-(MCP conectado, token de API, ou passar os registros pro usuário colar
-manualmente no hPanel).
+Dispare apenas `clonagem-recon` (e, se pedido, `clonagem-ocultos`) com o modo `somente-cloaking` e use
+`references/template-dossie-cloaking.md` para o dossiê. Não monte nada.
 
-### Passo 9: Escrever o RELATORIO.md
-Copie `references/template-relatorio-oferta.md` pra dentro da pasta da
-oferta como `RELATORIO.md` e preencha cada seção. **Nenhuma oferta está
-"entregue" sem esse relatório** — ele é o que permite ao usuário confirmar
-rapidamente que tudo foi feito (cloaking checado, VSL baixada, presell no
-lugar, checkout certo, tracking limpo, valor da oferta documentado).
+## Regras que valem pro time inteiro (repita no prompt de cada agent)
 
-## Fluxo 2 — Detectar cloaking
+- Não preencher formulários com dados reais nem avançar até pagamento.
+- Reportar exatamente o que foi observado, com os comandos usados; nada de
+  floreio.
+- Layout, copy, depoimentos e prova social são replicados fielmente; só
+  tracking sai. Sequestro do botão voltar e urgência com data falsa **não
+  entram** no clone, mas são documentados no relatório.
+- Nunca entregar clone que dispare pixel/analytics de terceiros.
+- Gates não são sugestão: `limpar_ocultos.py` exit 0, grep de tracking = 0,
+  `ffprobe` da duração do vídeo batendo com o original.
 
-Cloaking é sempre a mesma ideia: **o servidor decide o que mostrar com base
-em quem está perguntando.** Robôs de revisão (Meta, Google) recebem uma
-versão inofensiva; o usuário real vindo do anúncio recebe a oferta de
-verdade. A prova é mostrar essa diferença de forma reproduzível.
+## Quando NÃO usar sub-agents
 
-### Passo 1: Comparar identidades via HTTP
-```bash
-python scripts/checar_cloaking.py "https://DOMINIO/pagina/" --fbclid "FBCLID_REAL"
-```
-Se as respostas forem idênticas, o cloaking não está no primeiro HTML por
-User-Agent — mas pode estar acontecendo via JavaScript (o caso mais comum
-hoje: o HTML inicial é sempre a mesma "fachada", e um script no navegador
-decide se redireciona). É por isso que o Passo 2 é indispensável.
-
-### Passo 2: Confirmar com navegador real renderizando JS
-Isso o `curl`/script Python não mostra. Abra a URL (com e sem
-`fbclid`/referrer de anúncio) numa ferramenta de preview com navegador de
-verdade e espere uns 5-6s pra qualquer redirect client-side acontecer:
-```js
-{ urlFinal: location.href, dominioFinal: location.hostname,
-  redirecionou: location.hostname !== "DOMINIO_ORIGINAL" }
-```
-Se o domínio final mudar (ou o conteúdo virar outra coisa completamente
-diferente da página "vazia"/institucional inicial), essa é a prova visual.
-Tire um screenshot da oferta real — é a peça mais forte do dossiê.
-
-### Passo 3: Vasculhar o código por assinaturas de cloaker
-Procure por: nomes de config tipo `"cloacker"`, `isHideQueryParamsEnabled`,
-título disfarçado (`"WhatsApp"`, `"Login"`, página de erro genérica),
-`<meta name="robots" content="noindex">`, e scripts ofuscados (decodifique
-com `scripts/decodificar_pixel_ofuscado.py` — às vezes é "só" um pixel
-escondido, não redirecionamento pra outra oferta, mas ainda vale documentar).
-
-### Passo 4: Montar o dossiê
-Use `references/template-dossie-cloaking.md`.
-
-## O que NÃO fazer
-- Não preencha formulários com dados reais, não avance até uma etapa de
-  pagamento, e não insira informação pessoal ao investigar uma oferta
-  suspeita ou um checkout — pare assim que tiver prova/informação
-  suficiente (URL de destino + preço visível no texto do botão/CTA +
-  trackers carregados já bastam pra documentar).
-- Não invente ou floreie a redação do dossiê/relatório — reporte
-  exatamente o que foi observado, com comandos usados, pra ser verificável
-  por terceiros.
-- Ao clonar, sempre remova o tracking do site original antes de entregar —
-  nunca entregue uma cópia que ainda dispara pixels/analytics de outra
-  pessoa. Mas não confunda "tracking" com "conteúdo de marketing" — copy,
-  depoimentos e prova social são replicados fielmente; só os dois padrões
-  manipulativos listados acima (sequestro de botão voltar, urgência falsa)
-  ficam de fora por padrão, e mesmo esses são documentados, não escondidos.
+Pedido pequeno e pontual (ex.: "só decodifica esse pixel", "só baixa esse
+vídeo") → execute você mesmo o passo correspondente do playbook; orquestrar
+tudo aí é custo sem ganho.

@@ -66,6 +66,7 @@ ver `references/trackers-para-remover.md` para a lista completa):
 - [ ] Meta Pixel / fbevents (`fbq(`, `connect.facebook.net`)
 - [ ] Google Ads / GA4 / GTM (`gtag(`, `googletagmanager`)
 - [ ] UTMify (script visível E pixel oculto/ofuscado), Clarity, Hotjar, TikTok Pixel
+- [ ] Botões/links de checkout ocultos do original removidos (`limpar_ocultos.py` = 0)
 - [ ] Script de atribuição cross-domain (fbclid/_fbp/_fbc repassados pro checkout)
 - [ ] Player/analytics de terceiros (VTurb/converteai, Panda, etc.) — trocado por vídeo self-hosted
 - [ ] Boilerplate de WordPress/Elementor (feeds, oEmbed, wp-json, xmlrpc)
