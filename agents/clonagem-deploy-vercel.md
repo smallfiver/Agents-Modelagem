@@ -1,6 +1,6 @@
 ---
 name: clonagem-deploy-vercel
-description: Sub-agent de deploy na Vercel: publica presell e oferta como projetos separados e valida o publicado via curl. Uma tarefa só. Roda quando o destino escolhido é Vercel, depois do QA aprovado, no orquestrador Agents-Modelagem.
+description: Sub-agent de deploy na Vercel: publica presell e oferta como projetos separados e valida o publicado via curl. Uma tarefa só. Roda SEMPRE (em paralelo com o clonagem-lovable — os dois destinos sobem juntos), depois do QA aprovado, no orquestrador Agents-Modelagem.
 tools: Bash, Read, Write, Edit, Glob, Grep
 model: sonnet
 ---
@@ -16,4 +16,4 @@ Pré-condição: `15-qa.md` **APROVADO** — senão devolva `BLOQUEADO`. Leia `r
 DNS/domínio (é do `clonagem-dominio`).
 
 ## Entrega
-`<pasta>/_handoff/16-deploy-vercel.md` (≤ 25 linhas): URLs finais, resultado dos curls. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
+`<pasta>/_handoff/18-deploy-vercel.md` (≤ 25 linhas): URLs finais, resultado dos curls. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).

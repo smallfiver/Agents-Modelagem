@@ -177,6 +177,33 @@ título disfarçado (`"WhatsApp"`, `"Login"`, página de erro genérica),
 com `scripts/decodificar_pixel_ofuscado.py` — às vezes é "só" um pixel
 escondido, não redirecionamento pra outra oferta, mas ainda vale documentar).
 
+### Passo 3.5: Analisar o script decisor
+Se o HTML carrega um script de nome aleatório ou ofuscado, baixe-o e rode:
+```bash
+python scripts/analisar_script_decisor.py script.js --webcrack --out _handoff/cloaking-raw/
+```
+A análise é estática (só o `--webcrack` avalia o decodificador de strings do
+alvo, no sandbox do próprio webcrack) e diz o
+que ele lê do navegador, para onde fala, como entregaria outra página e se
+tem assinatura de cloaker. `--webcrack` desofusca antes se o `webcrack`
+estiver instalado; `--npx` baixa a ferramenta e só entra com autorização do
+usuário. Ofuscação em VM não é desfeita: o relatório avisa, e a lógica de
+decisão fica como "não verificada".
+
+**Lições de um caso real (NatureVital, out/2026):**
+- O `checar_cloaking.py` deu "idêntico" nas 4 identidades, mas o servidor
+  injetava o script decisor e cookies de estado só quando o pedido trazia
+  `Accept-Language` ou `Sec-Fetch-*`. Compare sempre com e sem cabeçalhos de
+  navegador e olhe `Set-Cookie` — a primeira rodada reportou "nenhum
+  Set-Cookie" por ter testado só sem esses cabeçalhos.
+- O script parava antes de coletar fingerprint ou chamar a rede: a decisão
+  era do servidor. Emular celular não muda nada nesse caso; diga isso em vez
+  de continuar tentando no cliente.
+- O país-alvo foi presumido errado duas vezes (pelo idioma da fachada, depois
+  pelo idioma de anúncios antigos da mesma página). A Biblioteca de Anúncios,
+  filtrada pelo domínio, dá o idioma do criativo, o alcance por país e se a
+  campanha está ativa. Campanha pausada pode significar só fachada no ar.
+
 ### Passo 4: Montar o dossiê
 Use `references/template-dossie-cloaking.md`.
 

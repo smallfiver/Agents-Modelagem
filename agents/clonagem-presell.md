@@ -16,4 +16,4 @@ Leia `references/estrutura-pasta-oferta.md` (seção da presell). Insumos: `04-m
 Oferta, reveal, vídeo ou deploy.
 
 ## Entrega
-`<pasta>/_handoff/11-presell.md` (≤ 20 linhas): arquivos, valor de `OFFER_URL`, build ok/falhou (rode `npm run build`). Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
+`<pasta>/_handoff/13-presell.md` (≤ 20 linhas): arquivos, valor de `OFFER_URL`, build ok/falhou (rode `npm run build`). Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).

@@ -13,4 +13,4 @@ Insumos: `03-ocultos.md` (mecânica e URL do back redirect), `04-mapa.md`, `05-l
 3. Gates: grep de tracking = 0; `limpar_ocultos.py` exit 0.
 
 ## Entrega
-`<pasta>/_handoff/14-backredirect.md` (≤ 25 linhas): mecânica original documentada, arquivos, gates. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
+`<pasta>/_handoff/16-backredirect.md` (≤ 25 linhas): mecânica original documentada, arquivos, gates. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).

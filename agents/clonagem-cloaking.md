@@ -12,10 +12,13 @@ Leia o "Fluxo 2 — Detectar cloaking" de `references/playbook-detalhado.md`. In
 1. `scripts/checar_cloaking.py <url> --fbclid <fbclid>` (4 identidades).
 2. HTTP idêntico **não** descarta cloaking via JS. Com navegador real disponível, abra com e sem `fbclid`/referrer, espere 5-6 s e registre `location.href` final e screenshot. Sem navegador: escreva **"JS não verificado"** — nunca presuma.
 3. Procure assinaturas: `cloacker`, `isHideQueryParamsEnabled`, título disfarçado, `noindex`, scripts ofuscados.
-4. Modo `somente-cloaking`: monte o dossiê com `references/template-dossie-cloaking.md`.
+4. Compare também **com e sem cabeçalhos de navegador** (`Accept-Language`, `Sec-Fetch-*`) e registre `Set-Cookie`: há cloaker que só injeta o script decisor e os cookies de estado quando esses cabeçalhos vêm. `diff` dos dois HTMLs mostra o script injetado.
+5. Para cada script suspeito (injetado, ofuscado, nome aleatório), baixe e rode `scripts/analisar_script_decisor.py <script.js> --webcrack --out <pasta>/_handoff/cloaking-raw/`. A análise é estática; só o `--webcrack` avalia o decodificador de strings do alvo, dentro do sandbox do próprio webcrack. Leve ao handoff o veredito, o que ele lê do navegador, para onde fala e como entregaria outra página. `--npx` (baixa o webcrack) só se o prompt disser que o usuário autorizou instalar. Aviso de VM no relatório = lógica de decisão **não verificada**.
+6. Se nenhum teste mostrar a página real, diga **o que reprovou**: script que para antes de coletar fingerprint ou de chamar a rede = decisão no servidor (IP/país/campanha), e fingerprint não resolve. Consulte a Biblioteca de Anúncios pelo domínio (idioma do criativo, países de alcance, anúncios ativos ou não) antes de supor o país-alvo pelo idioma da fachada.
+7. Modo `somente-cloaking`: monte o dossiê com `references/template-dossie-cloaking.md`.
 
 ## Limites
-Sem formulários com dados reais, sem pagamento. Reporte só o observado, com comandos.
+Sem formulários com dados reais, sem pagamento. Reporte só o observado, com comandos. Não falsifique sensores/fingerprint nem use proxy residencial para passar por filtro anti-bot: registre a condição que falta e devolva ao orquestrador.
 
 ## Entrega
 `<pasta>/_handoff/02-cloaking.md` (≤ 40 linhas): veredito **com nível de certeza** (HTTP: sim/não; JS: sim/não/não verificado), evidências, comandos usados. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).

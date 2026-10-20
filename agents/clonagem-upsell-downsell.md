@@ -18,4 +18,4 @@ Insumos: `04-mapa.md`, `05-limpeza.md`, e se houver vídeo `07-pitch-*`, `08-che
 Presell, deploy, back redirect.
 
 ## Entrega
-`<pasta>/_handoff/13-upsell-downsell.md` (≤ 30 linhas): arquivos, destinos de aceitar/recusar, sequência do funil, saída dos gates. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
+`<pasta>/_handoff/15-upsell-downsell.md` (≤ 30 linhas): arquivos, destinos de aceitar/recusar, sequência do funil, saída dos gates. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
