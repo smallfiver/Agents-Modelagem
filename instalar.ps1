@@ -7,7 +7,7 @@
 #
 # Uso:
 #   1. Clone este repo primeiro (precisa de acesso de colaborador, é privado):
-#        git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git Agents-Modelagem
+#        git clone https://github.com/smallfiver/Agents-Modelagem.git Agents-Modelagem
 #   2. Entre na pasta clonada e rode este script:
 #        cd Agents-Modelagem
 #        powershell -ExecutionPolicy Bypass -File .\instalar.ps1

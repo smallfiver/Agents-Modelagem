@@ -6,7 +6,7 @@
 # em ~/.claude/skills/Agents-Modelagem/
 #
 # Uso:
-#   git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git Agents-Modelagem
+#   git clone https://github.com/smallfiver/Agents-Modelagem.git Agents-Modelagem
 #   cd Agents-Modelagem
 #   bash instalar.sh
 # ============================================================================
