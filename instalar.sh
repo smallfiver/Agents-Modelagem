@@ -6,7 +6,7 @@
 # em ~/.claude/skills/Agents-Modelagem/
 #
 # Uso:
-#   git clone https://github.com/smallfiver/Agents-Modelagem.git
+#   git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git Agents-Modelagem
 #   cd Agents-Modelagem
 #   bash instalar.sh
 # ============================================================================
@@ -100,12 +100,38 @@ echo "[ok] Skill instalada em: $DESTINO_SKILL"
 # ---- Instalar os sub-agents (time do orquestrador) ----
 ORIGEM_AGENTS="$SCRIPT_DIR/agents"
 DESTINO_AGENTS="$HOME/.claude/agents"
+
+# Remove agents antigos (nomes trocados em 04/10) pra não ficarem duplicados/obsoletos
+for antigo in clonagem-vsl.md clonagem-builder.md clonagem-deploy.md; do
+  if [ -f "$DESTINO_AGENTS/$antigo" ]; then
+    rm -f "$DESTINO_AGENTS/$antigo"
+    echo "[limpeza] Removido agent antigo: $antigo"
+  fi
+done
+
 if [ -d "$ORIGEM_AGENTS" ]; then
   mkdir -p "$DESTINO_AGENTS"
   cp "$ORIGEM_AGENTS"/*.md "$DESTINO_AGENTS/"
   echo "[ok] Sub-agents instalados em: $DESTINO_AGENTS"
 else
   echo "[aviso] Pasta 'agents' não encontrada — o orquestrador vai funcionar sem sub-agents dedicados."
+fi
+
+echo ""
+echo "== Checando chaves da Vturb (antes do primeiro uso real do clonagem-vturb) =="
+# A Vturb tem DUAS chaves diferentes: VTURB_API_KEY (Analytics, X-Api-Token,
+# só leitura) e VTURB_VIDEOS_API_KEY (Videos API, bearer vt_..., upload+CTA).
+# Só confere se os NOMES existem no ambiente — nunca lê nem imprime o valor.
+if [ -n "${VTURB_API_KEY:-}" ] && [ -n "${VTURB_VIDEOS_API_KEY:-}" ]; then
+  echo "[ok] VTURB_API_KEY e VTURB_VIDEOS_API_KEY estão definidas."
+elif [ -n "${VTURB_API_KEY:-}" ] || [ -n "${VTURB_VIDEOS_API_KEY:-}" ]; then
+  if [ -n "${VTURB_API_KEY:-}" ]; then FALTANDO="VTURB_VIDEOS_API_KEY"; else FALTANDO="VTURB_API_KEY"; fi
+  echo "[aviso] Só uma das duas chaves da Vturb está definida — falta $FALTANDO."
+  echo "        Analytics (X-Api-Token) e Videos API (bearer vt_...) são chaves DIFERENTES;"
+  echo "        colar uma por cima da outra apaga a que já existia. Confirme com o dono antes do clonagem-vturb."
+else
+  echo "[aviso] Nenhuma das duas chaves da Vturb (VTURB_API_KEY / VTURB_VIDEOS_API_KEY) está definida."
+  echo "        Normal se ainda não for comercializar de verdade; necessário antes de rodar o clonagem-vturb."
 fi
 
 echo ""

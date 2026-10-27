@@ -111,30 +111,33 @@ Replicar essa oferta por completo, seguindo o playbook padrão:
 Troca só a primeira linha (a URL). O resto é o padrão fixo — não precisa
 reescrever a cada oferta.
 
-> Se o destino for um zip pra Lovable em vez de deploy direto na Vercel,
-> troca a última linha do bloco de deploy por: *"gerar um único zip pro
-> Lovable, com a presell na raiz e a oferta em `/oferta/`, sem incluir o
-> vídeo nem `node_modules`"*.
+> **Destino não é mais escolha**: toda oferta sobe sempre nos dois — Vercel
+> (deploy direto) **e** Lovable (zip, sem vídeo nem `node_modules`).
+>
+> Pra vender a oferta de verdade (produto + checkout próprio), acrescente:
+> *"subir o produto na Kirvano (preço conforme dito na transcrição do pitch)
+> e subir o vídeo com o CTA configurado na Vturb"* — o **orquestrador**
+> (não um sub-agent) confirma nome, preço e capa com você e escreve direto
+> na Kirvano; a Vturb usa a API de Vídeos própria (não a de Analytics) e
+> sobe/configura o CTA sozinha — só o link de embed do player é sempre um
+> passo manual no painel, avisado assim que o upload termina.
 
 ---
 
 ## 2. Como o fluxo roda
 
-Nove etapas, sempre nessa ordem. A skill já sabe disso pelo `SKILL.md` —
-isto é só pra você entender o que está vendo rodar.
+Um sub-agent por tarefa (21 no total, ver `CLAUDE.md` §4), sempre nessa
+ordem. A skill já sabe disso pelo `SKILL.md` — isto é só pra você entender o
+que está vendo rodar.
 
-| # | Etapa | O que faz |
+| fase | agents | o que faz |
 |---|---|---|
-| 01 | **Reconhecimento** | `mapear_pagina.py` baixa o HTML e aponta plataforma, player de vídeo, trackers visíveis e sinais de ofuscação. |
-| 02 | **Cloaking** | `checar_cloaking.py` compara a resposta pra navegador normal, `facebookexternalhit` e `Googlebot`. Depois confirma num navegador real esperando 5-6s por redirect via JS. |
-| 03 | **Extrair a VSL** | Acha o `player.js` (ou testes A/B com peso de tráfego), o `range:{start:SEGUNDOS}` do pitch, o link de checkout real, e baixa o vídeo via ffmpeg do CDN. |
-| 04 | **Decodificar ofuscação** | Se achar `atob(`/XOR no código, `decodificar_pixel_ofuscado.py` revela o pixel/tracker escondido ali. |
-| 05 | **Montar a estrutura** | Presell + oferta + reveal automático do checkout no segundo do pitch — layout replicado por completo, sem cortar prova social. |
-| 06 | **Limpar o tracking** | Remove pixel, UTMs, scripts ofuscados. Grep final confirma zero resíduo. |
-| 07 | **Validar** | Simula a lógica de reveal via JS, confere imagens quebradas e overflow mobile — antes de gastar tempo com deploy. |
-| 08 | **Deploy** | Vercel (presell + oferta), `vercel.json` com SPA rewrite, validação pós-deploy via curl comparando `content-length`. |
-| 8.5 | **Domínio (opcional)** | Pergunta se quer conectar um domínio próprio (ex: Hostinger) antes de mexer em qualquer DNS — nunca automático. Ver `references/dominio-hostinger-vercel.md`. |
-| 09 | **Relatório** | `RELATORIO.md` a partir do template — nenhuma oferta é considerada entregue sem ele. |
+| Diagnóstico | `recon` → `cloaking` → `ocultos` → `mapa` → `limpeza` | baixa a página, prova/descarta cloaking (`checar_cloaking.py` + `analisar_script_decisor.py`), analisa ocultos, confirma o tipo, gera a base limpa (zero tracking). |
+| Vídeo (se houver) | `vsl-detector` → por variante: `pitch` ∥ `checkout` ∥ `vsl-download` → `transcricao` (opcional) | detecta VSL(s)/teste A/B, segundo exato do pitch, checkout real, baixa e recomprime o vídeo, transcreve se pedido. |
+| Comercialização (condicional, só se confirmar que vai vender de verdade) | `kirvano` (só lê/prepara plano) → orquestrador escreve na Kirvano+Canva → `vturb` | produto+checkout+capa+ebook: o plano sai do `kirvano`, mas quem cria/escreve de verdade na Kirvano é o orquestrador (confirmação do dono antes); upload+CTA na Vturb via **Videos API**. |
+| Construção | `presell` (já roda em paralelo desde a Limpeza) · `oferta` · `upsell-downsell` · `backredirect` | monta a página conforme o tipo — layout replicado por completo, reveal automático no segundo certo. |
+| Gate | `qa` | verifica sem corrigir (reprovado volta ao agent de construção, máx. 2 ciclos). |
+| Entrega | `deploy-vercel` ∥ `lovable` (sempre os dois) → `dominio` (se pedido) → `relatorio` | deploy validado por curl, zip pra Lovable, domínio próprio opcional, `RELATORIO.md`. |
 
 ---
 
@@ -225,22 +228,24 @@ A skill já tem esses limites embutidos — vale entender por que existem, não
 ## 7. Orquestrador + sub-agents
 
 O `SKILL.md` é um **orquestrador que só orquestra**: pergunta, despacha,
-confere status e entrega. **Cada tarefa tem um sub-agent próprio** (19 no
+confere status e entrega. **Cada tarefa tem um sub-agent próprio** (21 no
 total), e eles conversam por arquivos em `_handoff/`. O mapa completo e vivo
 está em [`CLAUDE.md`](CLAUDE.md).
 
 **Perguntas no início** (uma só vez): tipo da página (front-end, upsell,
-downsell, back-redirect), destino (Vercel ou Lovable) e se transcreve a VSL.
-Depois, só quando necessário: se o mapa divergir do tipo, se houver 2+ VSLs
-(clonar só a principal ou todas), domínio próprio.
+downsell, back-redirect) e se transcreve a VSL. Depois, só quando necessário:
+se o mapa divergir do tipo, se houver 2+ VSLs (clonar só a principal ou
+todas), **se vai vender de verdade (Kirvano + Vturb)**, domínio próprio.
+Destino de deploy não é mais pergunta — sobe sempre nos dois.
 
 | fase | agents |
 |---|---|
 | Diagnóstico | `recon` → `cloaking` → `ocultos` → `mapa` → `limpeza` |
 | Vídeo (se houver) | `vsl-detector` → por variante: `pitch` ∥ `checkout` ∥ `vsl-download` → `transcricao` (opcional) |
-| Construção | front-end: `presell` ∥ `oferta` · `upsell-downsell` · `backredirect` |
+| Comercialização (condicional) | `kirvano` (só plano/leitura) → orquestrador escreve na Kirvano+Canva (com confirmação do dono) → `vturb` (upload + CTA via API de Vídeos da Vturb) |
+| Construção | front-end: `presell` (em paralelo desde a Limpeza) · `oferta` · `upsell-downsell` · `backredirect` |
 | Gate | `qa` (reprovado volta ao agent de construção, máx. 2 ciclos) |
-| Entrega | `deploy-vercel` (+ `dominio` se pedido) ou `lovable` → `relatorio` |
+| Entrega | `deploy-vercel` ∥ `lovable` (sempre os dois) → [`dominio` se pedido] → `relatorio` |
 
 Todos têm o prefixo `clonagem-` e vivem em `agents/`; o instalador copia para
 `~/.claude/agents/`. O playbook completo continua em
@@ -254,25 +259,28 @@ Todos têm o prefixo `clonagem-` e vivem em `agents/`; o instalador copia para
 .
 ├── README.md                          ← este arquivo
 ├── CLAUDE.md                          ← mapa vivo da arquitetura
-├── agents/                            ← 19 sub-agents (vão pra ~/.claude/agents/)
+├── agents/                            ← 21 sub-agents (vão pra ~/.claude/agents/)
 │   └── clonagem-*.md                      recon, cloaking, ocultos, mapa, limpeza,
 │                                          vsl-detector, pitch, checkout, vsl-download,
-│                                          transcricao, presell, oferta, upsell-downsell,
-│                                          backredirect, qa, deploy-vercel, lovable,
-│                                          dominio, relatorio
+│                                          transcricao, kirvano, vturb, presell, oferta,
+│                                          upsell-downsell, backredirect, qa,
+│                                          deploy-vercel, lovable, dominio, relatorio
 └── Agents-Modelagem/    ← a skill orquestradora, pronta pra copiar
     ├── SKILL.md
     ├── references/
     │   ├── playbook-detalhado.md
     │   ├── deploy-vercel.md
+    │   ├── dominio-hostinger-vercel.md
     │   ├── estrutura-pasta-oferta.md
     │   ├── extrair-vsl-vturb.md
     │   ├── template-dossie-cloaking.md
     │   ├── template-relatorio-oferta.md
     │   └── trackers-para-remover.md
     └── scripts/
+        ├── analisar_script_decisor.py
         ├── checar_cloaking.py
         ├── comprimir_vsl_2pass.py
         ├── decodificar_pixel_ofuscado.py
+        ├── limpar_ocultos.py
         └── mapear_pagina.py
 ```

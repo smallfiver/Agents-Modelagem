@@ -78,17 +78,36 @@ grep -icE 'fbq\(|gtag\(|googletagmanager|connect\.facebook|utm_source=|clarity|h
 ```
 Deve dar **0** (ou só aparecer dentro de comentários explicativos).
 
-## ☐ Padrões observados (não incluídos no clone por padrão)
+## ☐ Padrões observados (não entram no clone)
 Se o original usava sequestro do botão voltar ou urgência com data falsa
 (ver `references/trackers-para-remover.md`), documentar aqui em vez de
 replicar silenciosamente. O resto do layout (headline, prova social,
 depoimentos, footer) É replicado fielmente — só esses dois padrões
-manipulativos ficam de fora por padrão, deixados comentados no código pra
-o usuário ativar se pedir explicitamente.
+manipulativos ficam de fora: **não são implementados, nem comentados no
+código** — `CLAUDE.md` §7 e os agents mandam só documentar, nunca
+implementar. (Correção de 20/10: a versão anterior deste template dizia
+"deixados comentados no código para ativar", o que divergia do `CLAUDE.md`;
+removido. Se algum dia vale ter uma versão comentada pronta pra ativar sob
+pedido explícito do dono — em vez de só documentada — isso ainda é
+`[PENDENTE DE VALIDAÇÃO com o dono]`.)
 
 ## ☐ Valor da oferta
 Preço, moeda, order bump (se houver), upsell/downsell (se verificável sem
 completar pagamento — NUNCA completar uma compra real para descobrir).
+
+## ☐ Comercialização (só se o dono pediu pra vender de verdade)
+- [ ] **Produto na Kirvano:** nome, ID, preço confirmado (dito na transcrição
+      do pitch; divergência com o preço do concorrente documentada, se houve)
+- [ ] **Checkout Kirvano:** `{link}`
+- [ ] **Capa/banner:** gerada e aplicada (ferramenta usada)
+- [ ] **Ebook entregável:** montado a partir da transcrição, caminho/link, e
+      subido como conteúdo do produto
+- [ ] **Vturb:** `video_id`, status (`ready`/outro), CTA configurado no
+      segundo exato do pitch apontando pro checkout, via **API de Vídeos**
+      (`api.vturb.com` — diferente da API de Analytics, só leitura); embed
+      final: {link/script, ou "buscar no painel" se a API não devolveu}
+- Se o dono optou por **só clonar, sem vender**: escreva "não aplicável —
+  modelagem só para estudo/teste".
 
 ---
 
@@ -101,10 +120,11 @@ completar pagamento — NUNCA completar uma compra real para descobrir).
 └── vsl/         <- vídeos baixados (arquivo-fonte + versão compacta)
 ```
 
-## 🔗 URLs publicadas
-- Presell: {URL}
-- Oferta (VSL): {URL}
-- Checkout: {URL}
+## 🔗 URLs publicadas (sempre os dois destinos)
+- **Vercel** — Presell: {URL} · Oferta (VSL): {URL}
+- **Lovable** — zip: `{Nome}-lovable.zip` ({caminho})
+- Checkout (original, detectado no concorrente): {URL}
+- Checkout próprio (Kirvano, se comercializou): {URL}
 - Domínio próprio conectado (Hostinger)? {Sim / Não — usuário optou por
   ficar só no `*.vercel.app` / Não perguntado ainda}
   - Se sim: domínio, registros DNS aplicados, e se foi via API (token) ou

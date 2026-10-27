@@ -52,10 +52,27 @@ Pré-condição: `11-kirvano.md` existe (precisa do link do checkout). Insumos: 
      }'
    ```
    `general.pitch_time` é o campo nativo da Vturb pra métricas de receita no segundo certo — configure junto com o CTA, não só um dos dois. **Não toque em `pixels`** (a Vturb tem pixel próprio no player; nosso clone não usa rastreamento de terceiros).
-6. **Buscar o embed pra entregar ao `clonagem-oferta`**: `GET /v1/videos/{id}` de novo e procure um campo de embed/script/player (`embed`, `script_url`, `player_url` ou semelhante). **Se não vier nenhum**, não invente a URL: devolva o `id` do vídeo e diga que falta 1 clique manual no painel da Vturb pra copiar o snippet de embed — isso não é `BLOQUEADO`, é uma pendência de 1 linha.
+6. **Retenção/play rate (padrão, aplique sempre depois do CTA)**: `PATCH /v1/videos/{id}` com `{"playback":{"disable_pause":true,"smart_pause":true},"immersive_mode":{"enabled":true,"mobile":true,"expand_on_play":true}}`. Teste com `?dry_run=true` antes de aplicar de verdade. `resume.enabled` e `smart_autoplay.enabled` já nascem `true` por padrão, não precisa setar.
+7. **Domínio liberado (SEMPRE, antes de entregar)**: `GET /v1/domains` e confira se os domínios de destino já estão na lista (ou já cobertos por um genérico tipo `lovable.app`). Se faltar algum, adicione: `POST /v1/domains {"domain":"<dominio>"}` para cada domínio que vai hospedar a oferta (Vercel oferta, Vercel presell, domínio Lovable). Sem isso o player mostra "domínio não permitido" em produção mesmo com tudo certo — falha real descoberta só depois do deploy numa oferta (21/10). Se você ainda não sabe os domínios finais nesta fase (deploy roda depois), avise o orquestrador que esse passo falta ser feito **depois do deploy-vercel/lovable**, antes de dar a oferta por pronta.
+8. **2+ variantes (A/B)**: se houver mais de uma variante clonada, crie o teste de verdade — não suba vídeos soltos:
+   ```bash
+   curl -sS -X POST https://api.vturb.com/v1/ab_tests \
+     -H "Authorization: Bearer $VTURB_VIDEOS_API_KEY" -H "Content-Type: application/json" \
+     -d '{"name":"<Nome> - A/B V1 x V2","variants":[{"video_id":"<id_v1>","traffic_percentage":<peso_v1>},{"video_id":"<id_v2>","traffic_percentage":<peso_v2>}]}'
+   curl -sS -X POST "https://api.vturb.com/v1/ab_tests/{ab_test_id}/run" -H "Authorization: Bearer $VTURB_VIDEOS_API_KEY"
+   ```
+9. **Buscar o embed pra entregar ao `clonagem-oferta`**: `GET /v1/videos/{id}/embed?type=js` devolve o snippet pronto (**sai pela API sim** — corrigido 21/10, nunca mais assuma que é manual). **Se existe `ab_test`, NÃO use esse endpoint de vídeo avulso para o embed final** — o embed de UM vídeo (`/players/{video_id}/v4/player.js`, elemento `id="vid-{video_id}"`) **nunca distribui o A/B**, sempre mostra a mesma variante pra todo mundo. O embed que distribui de verdade é:
+   ```html
+   <vturb-smartplayer id="ab-{ab_test_id}" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
+   <script type="text/javascript" id="scr-ab-{ab_test_id}" async src="https://scripts.converteai.net/{workspace_id}/ab-test/{ab_test_id}/player.js"></script>
+   ```
+   Confirme testando: colar `{ab_test_id}` no lugar de `{video_id}` no path `/players/` dá 404 (`notfound.js`); o path `/ab-test/{ab_test_id}/player.js` dá 200 com `randomizer` e os pesos certos no corpo — se não bater isso, não entregue o embed, devolva `BLOQUEADO`.
+
+## Avise o orquestrador IMEDIATAMENTE — não espere perguntarem
+Assim que terminar (upload+CTA+retenção, e A/B se houver), deixe no status final: *"Vídeo pronto, CTA e retenção configurados, embed [de vídeo único | do ab_test] pronto para o clonagem-oferta."* Se houver `ab_test`, destaque que o embed entregue é o do `/ab-test/`, não o de vídeo avulso — essa confusão já causou retrabalho numa oferta (saobento-antonio, 21/10).
 
 ## Não faça
-Pular a confirmação de upload sem o `status` virar `ready`; inventar o campo de embed se a API não devolver um; usar a API de Analytics pra qualquer coisa deste agent; ativar `pixels` ou qualquer rastreamento de terceiros no player.
+Pular a confirmação de upload sem o `status` virar `ready`; usar a API de Analytics pra qualquer coisa deste agent; ativar `pixels` ou qualquer rastreamento de terceiros no player; **entregar o embed de vídeo avulso quando existe `ab_test`** (nunca distribui tráfego — já causou retrabalho); pular o `dry_run` antes de aplicar config de retenção de verdade.
 
 ## Entrega
-`<pasta>/_handoff/12-vturb.md` (≤ 20 linhas): `video_id` na Vturb, status final, segundo do CTA/`pitch_time` configurado, link de checkout usado, embed/script (ou a pendência de buscar no painel). Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
+`<pasta>/_handoff/12-vturb.md` (≤ 25 linhas): `video_id`(s) na Vturb, `ab_test_id` + pesos se houver, status final, segundo do CTA/`pitch_time` configurado, retenção aplicada (confirme os campos no payload devolvido), link de checkout usado, e o embed HTML completo e correto (vídeo único OU `/ab-test/`, nunca os dois misturados). Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + qual tipo de embed foi entregue + decisão necessária do orquestrador (se houver).

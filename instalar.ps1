@@ -7,7 +7,7 @@
 #
 # Uso:
 #   1. Clone este repo primeiro (precisa de acesso de colaborador, é privado):
-#        git clone https://github.com/smallfiver/Agents-Modelagem.git
+#        git clone https://github.com/smallfiver/clonar-funil-detectar-cloaking.git Agents-Modelagem
 #   2. Entre na pasta clonada e rode este script:
 #        cd Agents-Modelagem
 #        powershell -ExecutionPolicy Bypass -File .\instalar.ps1
@@ -85,12 +85,42 @@ Write-Host "[ok] Skill instalada em: $destinoSkill" -ForegroundColor Green
 # ---- Instalar os sub-agents (time do orquestrador) ----
 $origemAgents = Join-Path $scriptDir "agents"
 $destinoAgents = Join-Path $env:USERPROFILE ".claude\agents"
+
+# Remove agents antigos (nomes trocados em 04/10) pra não ficarem duplicados/obsoletos
+$agentsAntigos = @("clonagem-vsl.md", "clonagem-builder.md", "clonagem-deploy.md")
+foreach ($antigo in $agentsAntigos) {
+    $caminhoAntigo = Join-Path $destinoAgents $antigo
+    if (Test-Path $caminhoAntigo) {
+        Remove-Item -Force $caminhoAntigo
+        Write-Host "[limpeza] Removido agent antigo: $antigo" -ForegroundColor Yellow
+    }
+}
+
 if (Test-Path $origemAgents) {
     New-Item -ItemType Directory -Force -Path $destinoAgents | Out-Null
     Copy-Item -Force (Join-Path $origemAgents "*.md") $destinoAgents
     Write-Host "[ok] Sub-agents instalados em: $destinoAgents" -ForegroundColor Green
 } else {
     Write-Host "[aviso] Pasta 'agents' não encontrada — o orquestrador vai funcionar sem sub-agents dedicados." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "== Checando chaves da Vturb (antes do primeiro uso real do clonagem-vturb) ==" -ForegroundColor Cyan
+# A Vturb tem DUAS chaves diferentes: VTURB_API_KEY (Analytics, X-Api-Token,
+# só leitura) e VTURB_VIDEOS_API_KEY (Videos API, bearer vt_..., upload+CTA).
+# Só confere se os NOMES existem no ambiente — nunca lê nem imprime o valor.
+$temApiKey = [bool]$env:VTURB_API_KEY
+$temVideosKey = [bool]$env:VTURB_VIDEOS_API_KEY
+if ($temApiKey -and $temVideosKey) {
+    Write-Host "[ok] VTURB_API_KEY e VTURB_VIDEOS_API_KEY estão definidas." -ForegroundColor Green
+} elseif ($temApiKey -or $temVideosKey) {
+    $faltando = if ($temApiKey) { "VTURB_VIDEOS_API_KEY" } else { "VTURB_API_KEY" }
+    Write-Host "[aviso] Só uma das duas chaves da Vturb está definida — falta $faltando." -ForegroundColor Yellow
+    Write-Host "        Analytics (X-Api-Token) e Videos API (bearer vt_...) são chaves DIFERENTES;" -ForegroundColor Yellow
+    Write-Host "        colar uma por cima da outra apaga a que já existia. Confirme com o dono antes do clonagem-vturb." -ForegroundColor Yellow
+} else {
+    Write-Host "[aviso] Nenhuma das duas chaves da Vturb (VTURB_API_KEY / VTURB_VIDEOS_API_KEY) está definida." -ForegroundColor Yellow
+    Write-Host "        Normal se ainda não for comercializar de verdade; necessário antes de rodar o clonagem-vturb." -ForegroundColor Yellow
 }
 
 Write-Host ""

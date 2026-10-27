@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Mapeia uma pagina de funil/VSL ja baixada: identifica plataforma, player de video,
-trackers presentes e mecanismo de "revelar oferta". Rode ANTES de clonar_pagina.py
+trackers presentes e mecanismo de "revelar oferta". Rode ANTES de checar_cloaking.py
 para saber o que esperar.
 
 Uso: python mapear_pagina.py page.html
@@ -83,7 +83,7 @@ def main():
     cloak = find_hits(html, CLOAK_HINTS)
     if cloak:
         print("  ⚠️  " + "\n  ⚠️  ".join(cloak))
-        print("  -> Rode detectar_cloaking.py para confirmar com evidencia reproduzivel.")
+        print("  -> Rode checar_cloaking.py para confirmar com evidencia reproduzivel.")
     else:
         print("  (nenhum sinal obvio no HTML estatico — nao descarta cloaking via JS, teste mesmo assim)")
 
