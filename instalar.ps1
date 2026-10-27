@@ -6,7 +6,7 @@
 # em %USERPROFILE%\.claude\skills\Agents-Modelagem\
 #
 # Uso:
-#   1. Clone este repo primeiro (precisa de acesso de colaborador, é privado):
+#   1. Clone este repo primeiro (ou use o instalar-do-zero.ps1, ver README):
 #        git clone https://github.com/smallfiver/Agents-Modelagem.git Agents-Modelagem
 #   2. Entre na pasta clonada e rode este script:
 #        cd Agents-Modelagem
@@ -46,6 +46,23 @@ if (Test-Comando "ffmpeg") {
     winget install -e --id Gyan.FFmpeg --accept-source-agreements --accept-package-agreements
 }
 
+# ---- Python (scripts da skill e transcrição) ----
+# Windows tem um atalho falso "python" da Microsoft Store; só conta se responder a versão
+$pyVersao = if (Test-Comando "python") { python --version 2>$null } else { $null }
+if ($pyVersao) {
+    Write-Host "[ok] Python já instalado: $pyVersao" -ForegroundColor Green
+} else {
+    Write-Host "[instalando] Python 3.12 via winget..." -ForegroundColor Yellow
+    winget install -e --id Python.Python.3.12 --accept-source-agreements --accept-package-agreements
+}
+
+# winget não atualiza o PATH desta janela; recarrega pra npm/pip funcionarem já
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+
+# ---- faster-whisper (transcrição da VSL) ----
+Write-Host "[instalando/conferindo] faster-whisper..." -ForegroundColor Yellow
+python -m pip install --user --quiet faster-whisper
+
 # ---- Claude Code CLI ----
 Write-Host ""
 Write-Host "== Instalando o Claude Code ==" -ForegroundColor Cyan
@@ -53,6 +70,13 @@ if (Test-Comando "claude") {
     Write-Host "[ok] Claude Code já instalado." -ForegroundColor Green
 } else {
     npm install -g @anthropic-ai/claude-code
+}
+
+# ---- Vercel CLI (publicar presell e oferta) ----
+if (Test-Comando "vercel") {
+    Write-Host "[ok] Vercel CLI já instalado." -ForegroundColor Green
+} else {
+    npm install -g vercel
 }
 
 # ---- Instalar a skill ----
@@ -125,6 +149,8 @@ if ($temApiKey -and $temVideosKey) {
 
 Write-Host ""
 Write-Host "== Tudo pronto ==" -ForegroundColor Cyan
-Write-Host "1. Feche e reabra o terminal (garante que o PATH do Node/Git/ffmpeg atualizou)."
-Write-Host "2. Rode 'claude' numa pasta qualquer para autenticar (abre o navegador)."
-Write-Host "3. Digite '/Agents-Modelagem' — se aparecer no autocomplete, a skill está instalada."
+Write-Host "1. Feche e reabra o PowerShell (garante que o PATH do Node/Git/ffmpeg/Python atualizou)."
+Write-Host "2. Digite 'claude' e aperte Enter. Na primeira vez abre o navegador: entre com sua conta Claude (plano Pro ou Max)."
+Write-Host "3. Dentro do Claude, digite '/Agents-Modelagem' — se aparecer na lista, está instalado."
+Write-Host "4. Pra publicar ofertas: rode 'vercel login' uma vez (fora do Claude)."
+Write-Host "Passo a passo completo (chaves Vturb, Kirvano): README do repositório."

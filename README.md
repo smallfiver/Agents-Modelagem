@@ -1,12 +1,75 @@
-# Clonar Funil & Detectar Cloaking
+# Agents-Modelagem
 
 Um comando, uma URL de oferta: a skill investiga cloaking, extrai a VSL, limpa
 todo rastreamento, monta presell + oferta organizadas e sobe na Vercel — com
 relatório documentando cada etapa.
 
-Este repositório é **privado** — a skill decodifica pixels ofuscados e prova
-tecnicamente quando um domínio está fazendo cloaking. Não é conteúdo pra
-publicar em repositório público.
+---
+
+## 🚀 Começando do zero (nunca usou Claude nem IA? comece aqui)
+
+Siga na ordem. Leva uns 15 minutos. Tudo no **Windows 10 ou 11**.
+
+### Passo 1 — Ter uma conta Claude paga
+Crie sua conta em [claude.ai](https://claude.ai) e assine o plano **Pro** ou
+**Max**. O plano grátis não roda o Claude Code.
+
+### Passo 2 — Abrir o PowerShell
+Aperte a tecla **Windows**, digite **PowerShell** e clique em
+**Windows PowerShell**. Vai abrir uma janela azul/preta. É nela que você cola
+os comandos.
+
+### Passo 3 — Colar o comando de instalação
+Copie a linha abaixo, cole no PowerShell (botão direito do mouse cola) e
+aperte **Enter**:
+
+```powershell
+irm https://raw.githubusercontent.com/smallfiver/Agents-Modelagem/master/instalar-do-zero.ps1 | iex
+```
+
+Ele instala sozinho: Git, Node.js, ffmpeg, Python, transcrição
+(faster-whisper), Claude Code, Vercel e o próprio agente. Se o Windows
+perguntar "Deseja permitir alterações?", clique **Sim**. Espere aparecer
+**"== Tudo pronto =="**.
+
+> Deu erro no meio? Feche o PowerShell, abra de novo e cole o mesmo comando.
+> Ele continua de onde parou.
+
+### Passo 4 — Entrar no Claude
+**Feche o PowerShell e abra de novo** (obrigatório). Depois digite:
+
+```powershell
+claude
+```
+
+Na primeira vez abre o navegador: entre com a conta do Passo 1 e autorize.
+Volte pro PowerShell.
+
+### Passo 5 — Testar
+Dentro do Claude, digite `/Agents-Modelagem`. Se aparecer na lista, está
+instalado. Para modelar uma oferta:
+
+```
+/Agents-Modelagem https://link-da-oferta.com
+```
+
+### Passo 6 — Configurar para publicar e vender (uma vez só)
+| O quê | Pra quê | Como |
+|---|---|---|
+| **Vercel** | publicar presell e oferta na internet | crie conta em [vercel.com](https://vercel.com) e rode `vercel login` no PowerShell (fora do Claude) |
+| **Vturb** (2 chaves) | subir a VSL e o botão no segundo do pitch | no painel da Vturb pegue a chave de **Analytics** e a da **API de Vídeos** (começa com `vt_`). São **diferentes**. No PowerShell: `setx VTURB_API_KEY "SUA_CHAVE_ANALYTICS"` e `setx VTURB_VIDEOS_API_KEY "SUA_CHAVE_VIDEOS"`. Feche e reabra o PowerShell |
+| **Kirvano** | criar produto e checkout (só ofertas BR) | conecte a Kirvano como conector em [claude.ai](https://claude.ai) → Configurações → Conectores. Peça o passo a passo ao seu mentor |
+
+> **Nunca** cole suas chaves em arquivo nem mande no grupo. Só no `setx`.
+
+### Atualizar para a versão mais nova
+Cole o mesmo comando do Passo 3 de novo. Ele baixa a versão nova e reinstala.
+
+### Mac / Linux
+Abra o Terminal e rode:
+```bash
+git clone https://github.com/smallfiver/Agents-Modelagem.git && cd Agents-Modelagem && bash instalar.sh
+```
 
 ---
 
@@ -20,7 +83,8 @@ O que precisa estar instalado na máquina **antes** de usar a skill:
 | **Git** | clonar este repo, e algumas ofertas usam `git` internamente | `git --version` |
 | **ffmpeg** | baixar e recomprimir os vídeos das VSLs | `ffmpeg -version` |
 | **Claude Code** | é o agente que lê e executa a skill | `claude --version` |
-| **Conta com acesso a este repo** | ele é privado — precisa ser convidado como colaborador no GitHub | — |
+| **Python 3.12 + faster-whisper** | scripts da skill e transcrição da VSL | `python --version` |
+| **Vercel CLI** | publicar presell e oferta | `vercel --version` |
 
 Não precisa instalar nada disso manualmente um por um — o instalador abaixo
 faz tudo de uma vez.
@@ -30,7 +94,7 @@ faz tudo de uma vez.
 **Opção A — instalador automático** (recomendado, cobre requisitos + skill):
 
 ```bash
-git clone <URL-DESTE-REPO>
+git clone https://github.com/smallfiver/Agents-Modelagem.git
 cd Agents-Modelagem
 ```
 
@@ -51,7 +115,7 @@ Claude Code — instala o que estiver faltando (via `winget` no Windows,
 **Opção B — manual**, se preferir controlar cada passo:
 
 ```bash
-git clone <URL-DESTE-REPO>
+git clone https://github.com/smallfiver/Agents-Modelagem.git
 npm install -g @anthropic-ai/claude-code
 ```
 
