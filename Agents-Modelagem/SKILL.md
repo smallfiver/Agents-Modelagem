@@ -1,6 +1,6 @@
 ---
 name: Agents-Modelagem
-description: Orquestrador que clona ofertas/funis de VSL de qualquer domínio apenas coordenando sub-agents, um por tarefa (recon, cloaking, ocultos, mapa, limpeza, detector de VSLs, pitch, checkout, download, transcrição, Kirvano, Vturb, presell, oferta, upsell/downsell, back-redirect, QA, deploy Vercel, pacote Lovable, domínio, relatório). Começa perguntando tudo de uma vez só (tipo front-end/upsell/downsell/back-redirect, se transcreve a VSL e se quer domínio próprio); checa cloaking, determina automaticamente (sem perguntar) se o mercado da oferta é BR ou não a partir do recon/mapa, descobre se há 2+ VSLs (teste A/B), o segundo exato do pitch e o checkout real de cada uma, remove todo tracking, e SEMPRE executa a comercialização — Vturb sempre, mais produto+checkout na Kirvano (preço extraído da transcrição) quando o mercado é BR (Kirvano só liquida BRL) — e SEMPRE sobe o resultado nos dois destinos (Vercel e Lovable), entregando pasta por oferta com RELATORIO.md. Use sempre que o usuário mandar um link de página de vendas/VSL e pedir para "replicar", "clonar", "copiar esse funil/oferta", "modelar essa oferta", "limpar o código/tracking/pixel/UTM", "baixar/transcrever o vídeo/VSL", "criar uma presell", "subir o produto na Kirvano/Vturb", ou "investigar/provar cloaking", "ver a oferta real por trás do anúncio", "achar o link do checkout", "descobrir o momento do pitch".
+description: Orquestrador que clona ofertas/funis de VSL de qualquer domínio apenas coordenando sub-agents, um por tarefa (recon, cloaking, ocultos, mapa, limpeza, detector de VSLs, pitch, checkout, download, transcrição, Kirvano, Vturb, presell, oferta, upsell/downsell, back-redirect, QA, deploy Vercel, pacote Lovable, domínio, relatório). Começa perguntando tudo de uma vez só (modo automático / manual guiado com prints / tutorial, tipo front-end/upsell/downsell/back-redirect, se transcreve a VSL e se quer domínio próprio); checa cloaking, determina automaticamente (sem perguntar) se o mercado da oferta é BR ou não a partir do recon/mapa, descobre se há 2+ VSLs (teste A/B), o segundo exato do pitch e o checkout real de cada uma, remove todo tracking, e SEMPRE executa a comercialização — Vturb sempre, mais produto+checkout na Kirvano (preço extraído da transcrição) quando o mercado é BR (Kirvano só liquida BRL) — e SEMPRE sobe o resultado nos dois destinos (Vercel e Lovable), entregando pasta por oferta com RELATORIO.md. Use sempre que o usuário mandar um link de página de vendas/VSL e pedir para "replicar", "clonar", "copiar esse funil/oferta", "modelar essa oferta", "limpar o código/tracking/pixel/UTM", "baixar/transcrever o vídeo/VSL", "criar uma presell", "subir o produto na Kirvano/Vturb", ou "investigar/provar cloaking", "ver a oferta real por trás do anúncio", "achar o link do checkout", "descobrir o momento do pitch".
 ---
 
 # Orquestrador — Modelagem de ofertas
@@ -20,10 +20,15 @@ na raiz do repo.
 Antes de qualquer agent, pergunte **tudo que não depende de descoberta
 técnica** — ainda uma única chamada, podendo ter várias perguntas dentro:
 
-1. **Tipo da página:** front-end (VSL/presell → checkout) · upsell · downsell ·
+1. **Como quer fazer? (você já sabe usar a skill?)** Automático — já sei
+   usar, faz tudo · Manual guiado — me ensina fase por fase, com prints ·
+   Me explica primeiro como funciona. **Sempre pergunte**, mesmo que o
+   usuário já tenha usado antes — só pule se o pedido já disser o modo. Manual guiado e "me explica" seguem
+   `references/modo-aprender.md`; Automático segue o fluxo direto.
+2. **Tipo da página:** front-end (VSL/presell → checkout) · upsell · downsell ·
    back-redirect.
-2. **Transcrever a VSL?** Sim · Não.
-3. **Quer domínio próprio?** Não · Sim — se sim, peça já **qual domínio** e
+3. **Transcrever a VSL?** Sim · Não.
+4. **Quer domínio próprio?** Não · Sim — se sim, peça já **qual domínio** e
    **qual método** (ex.: Hostinger + Vercel).
 
 **Vender de verdade não é mais pergunta:** toda oferta modelada é **sempre**
@@ -39,8 +44,8 @@ não-BR).
 
 **Destino não se pergunta mais:** toda oferta sobe **sempre nos dois**,
 Vercel e Lovable (fase 10, em paralelo). Se o usuário já respondeu algo no
-pedido, não repita a pergunta correspondente. Guarde as 3 respostas: `tipo`,
-`transcrever`, `dominio` (+ domínio/método se sim).
+pedido, não repita a pergunta correspondente. Guarde as 4 respostas: `modo`,
+`tipo`, `transcrever`, `dominio` (+ domínio/método se sim).
 
 Essas respostas **substituem** a pergunta de domínio que antes aparecia no
 meio do fluxo (passo 9): lá você só **executa** com o que já foi respondido

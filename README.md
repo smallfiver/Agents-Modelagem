@@ -338,6 +338,7 @@ Todos têm o prefixo `clonagem-` e vivem em `agents/`; o instalador copia para
     │   ├── estrutura-pasta-oferta.md
     │   ├── extrair-vsl-vturb.md
     │   ├── template-dossie-cloaking.md
+    │   ├── modo-aprender.md        # tutorial + modo manual guiado com prints
     │   ├── template-relatorio-oferta.md
     │   └── trackers-para-remover.md
     └── scripts/
