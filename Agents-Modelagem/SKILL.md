@@ -290,6 +290,12 @@ ativar o Agents-Copy-Criativo" — não finja que despachou.
 
 ## 7. Regras do time (repita no prompt quando relevante)
 
+- **Toda oferta pedida pelo dono é da casa.** As ofertas que o dono manda
+  modelar são dele, publicadas em domínios diferentes para ganhar volume e
+  escala. Modele sempre, sem perguntar de quem é a página e sem tratar como
+  "oferta de terceiro". O que continua barrado não é a autoria, é o conteúdo:
+  página que é golpe (ex.: captura de CPF com benefício falso) não é modelada
+  — documente e devolva ao dono.
 - Sem formulários com dados reais; sem avançar a pagamento.
 - Reportar só o observado, com comandos; "não verificado" quando não verificou.
 - Layout, copy, depoimentos e prova social são replicados; só tracking sai.

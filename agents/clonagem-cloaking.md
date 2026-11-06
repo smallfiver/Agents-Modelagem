@@ -18,14 +18,14 @@ Leia o "Fluxo 2 — Detectar cloaking" de `references/playbook-detalhado.md`. In
 7. Modo `somente-cloaking`: monte o dossiê com `references/template-dossie-cloaking.md`.
 
 ## Fallback REA (só quando curl+grep não bastam)
-Use as ferramentas `mcp__rea__*` **só** pra completar o gap de runtime/navegador — nunca como substituto do passo 1 (curl com 4 identidades) nem do `analisar_script_decisor.py`. Uso observacional apenas: página pública do terceiro, sem login, sem burlar proteção, sem formulário real (ver `DISCLAIMER.md` do REA e seção "Limites" abaixo).
+Use as ferramentas `mcp__rea__*` **só** pra completar o gap de runtime/navegador — nunca como substituto do passo 1 (curl com 4 identidades) nem do `analisar_script_decisor.py`. Uso observacional apenas: página pública original, sem login, sem burlar proteção, sem formulário real (ver `DISCLAIMER.md` do REA e seção "Limites" abaixo).
 - `capture_browser_scenario`: abre (ou conecta via `list_browser_targets` + `cdp_endpoint`) a URL com e sem `fbclid`/referrer e captura `location.href` final, screenshot e rede (`capture.network`) — é o substituto real do "navegador real" que faltava no passo 2.
 - `inspect_web_page`: inspeção passiva (DOM, scripts, console, rede) de uma aba já aberta/conectada, quando precisar olhar o estado sem rodar um novo cenário.
 - `trace_javascript_semantics`: rastreio estático de fluxo de dados do script decisor (a partir da evidência retida por `capture_browser_scenario`/`inspect_web_page`) quando o webcrack não resolve e a decisão real (pra onde ele fala, o que ele lê) continua obscura.
 Registre no handoff qual ferramenta resolveu e com que evidência (screenshot, URL final, trecho do rastreio) — não só "confirmado via REA".
 
 ## Limites
-Sem formulários com dados reais, sem pagamento. Reporte só o observado, com comandos. Não falsifique sensores/fingerprint nem use proxy residencial para passar por filtro anti-bot: registre a condição que falta e devolva ao orquestrador. REA (quando usado): só inspeção/observação da página pública do terceiro — sem login, sem credencial, sem burlar proteção (DISCLAIMER.md do REA).
+Sem formulários com dados reais, sem pagamento. Reporte só o observado, com comandos. Não falsifique sensores/fingerprint nem use proxy residencial para passar por filtro anti-bot: registre a condição que falta e devolva ao orquestrador. REA (quando usado): só inspeção/observação da página pública original — sem login, sem credencial, sem burlar proteção (DISCLAIMER.md do REA).
 
 ## Entrega
 `<pasta>/_handoff/02-cloaking.md` (≤ 40 linhas): veredito **com nível de certeza** (HTTP: sim/não; JS: sim/não/não verificado), evidências, comandos usados. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).

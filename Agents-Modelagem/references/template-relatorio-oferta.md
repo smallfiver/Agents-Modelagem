@@ -97,7 +97,7 @@ completar pagamento — NUNCA completar uma compra real para descobrir).
 
 ## ☐ Comercialização (só se o dono pediu pra vender de verdade)
 - [ ] **Produto na Kirvano:** nome, ID, preço confirmado (dito na transcrição
-      do pitch; divergência com o preço do concorrente documentada, se houve)
+      do pitch; divergência com o preço da página original documentada, se houve)
 - [ ] **Checkout Kirvano:** `{link}`
 - [ ] **Capa/banner:** gerada e aplicada (ferramenta usada)
 - [ ] **Ebook entregável:** montado a partir da transcrição, caminho/link, e
@@ -123,7 +123,7 @@ completar pagamento — NUNCA completar uma compra real para descobrir).
 ## 🔗 URLs publicadas (sempre os dois destinos)
 - **Vercel** — Presell: {URL} · Oferta (VSL): {URL}
 - **Lovable** — zip: `{Nome}-lovable.zip` ({caminho})
-- Checkout (original, detectado no concorrente): {URL}
+- Checkout (original, detectado na página original): {URL}
 - Checkout próprio (Kirvano, se comercializou): {URL}
 - Domínio próprio conectado (Hostinger)? {Sim / Não — usuário optou por
   ficar só no `*.vercel.app` / Não perguntado ainda}
