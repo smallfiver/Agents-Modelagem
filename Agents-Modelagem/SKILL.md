@@ -81,7 +81,7 @@ de descoberta técnica feita por um sub-agent, feita só depois que ele roda):
 | 16 | `clonagem-backredirect` | página de back redirect sem hijack | `16-backredirect.md` |
 | 17 | `clonagem-qa` | gate independente (não corrige) | `17-qa.md` |
 | 18 | `clonagem-deploy-vercel` | deploy + curl (sempre roda) | `18-deploy-vercel.md` |
-| 19 | `clonagem-lovable` | pacote zip para Lovable (sempre roda) | `19-lovable.md` |
+| 19 | `clonagem-lovable` | pacote zip para Lovable (sempre roda); a publicação via MCP é sua, logo depois | `19-lovable.md` |
 | 20 | `clonagem-dominio` | domínio próprio (se confirmado) | `20-dominio.md` |
 | 21 | `clonagem-relatorio` | RELATORIO.md | `21-relatorio.md` |
 
@@ -218,10 +218,17 @@ Passo a passo:
    as causou e rode o QA de novo. Máx. 2 ciclos; depois traga ao usuário.
    Itens "não verificado" do QA vão ao usuário como pendência, não passam em
    silêncio.
-9. **Destino — sempre os dois, sempre em paralelo**: `clonagem-deploy-vercel`
-   ∥ `clonagem-lovable` (não é mais escolha do usuário). Com a URL da oferta
-   publicada, **faça o patch final de `OFFER_URL`** na presell (ramo A,
-   passo 4) e redeploy dela. Depois, **use a resposta de domínio já
+9. **Destino — sempre os dois, sempre em paralelo, os dois PUBLICADOS**:
+   `clonagem-deploy-vercel` ∥ `clonagem-lovable` (não é mais escolha do
+   usuário). O `clonagem-lovable` só gera o zip; **assim que o zip sair, você
+   (orquestrador) publica na Lovable pelo MCP** — upload do zip, projeto,
+   `deploy_project`, badge escondido e `curl -L` 200 — seguindo
+   `references/deploy-lovable.md`. Zip sem projeto publicado **não conta** como
+   entregue. Depois mande o `clonagem-vturb` liberar os dois domínios
+   (`*.vercel.app` e `*.lovable.app`). Com a URL da oferta Vercel
+   publicada, **faça o patch final de `OFFER_URL`** na presell Vercel (ramo A,
+   passo 4) e redeploy dela; a presell da Lovable usa `/oferta/index.html`
+   relativo e não precisa de patch. Depois, **use a resposta de domínio já
    coletada na pergunta inicial** (`dominio` + método) — não pergunte de
    novo. Se foi `sim` → `clonagem-dominio` com o domínio/método informados.
 9.5. **Verificação ao vivo pós-deploy (obrigatória, orquestrador faz direto,
@@ -250,7 +257,7 @@ Passo a passo:
 10. **`clonagem-relatorio`** — nenhuma oferta é entregue sem `RELATORIO.md`.
     Registre no relatório o resultado da verificação pós-deploy (passo 9.5),
     não só do QA pré-deploy.
-11. **Entrega** — responda com: URL Vercel **e** zip Lovable, produto/checkout
+11. **Entrega** — responda com: URL Vercel **e** URL Lovable publicada (o zip é só backup), produto/checkout
     Kirvano e status da Vturb (se comercializou), tipo, nº de VSLs e pitch de
     cada, checkout(s) e valor, cloaking (com nível de certeza), tracking
     removido, pendências, e o resultado da conexão com Agents-Copy-VSL
@@ -309,6 +316,12 @@ ativar o Agents-Copy-Criativo" — não finja que despachou.
 - Gates não são sugestão: `limpar_ocultos.py` exit 0, grep de tracking = 0,
   `ffprobe` da duração batendo, deploy validado por `curl`.
 - Sub-agents não falam com o usuário e não mexem em DNS sem instrução.
+- **Publicação na Lovable é sua (orquestrador), não do `clonagem-lovable`**:
+  `get_file_upload_url`, `create_project`, `send_message`, `deploy_project` via
+  MCP Lovable, direto, conforme `references/deploy-lovable.md`. O sub-agent não
+  tem as tools e a escrita dele seria barrada pelo classificador (mesmo gap da
+  Kirvano). Correção sempre no mesmo projeto (`send_message`), nunca projeto
+  novo — cada projeto gasta crédito.
 - **Escrita real na Kirvano é sua (orquestrador), não do `clonagem-kirvano`**:
   `products_create`, `products_create_offer`, `products_create_checkout`,
   `products_set_cover`, `products_add_content`,

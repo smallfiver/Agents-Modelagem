@@ -18,4 +18,4 @@ Pré-condição: `15-qa.md` **APROVADO** — senão devolva `BLOQUEADO`.
 ## Entrega
 `<pasta>/_handoff/19-lovable.md` (≤ 25 linhas): caminho e tamanho do zip, lista de conteúdo, instruções do vídeo. Termine a resposta com 2-3 linhas: status `OK|BLOQUEADO` + decisão necessária do orquestrador (se houver).
 
-Nota: se o orquestrador também criar um **projeto Lovable real via MCP** (não só este zip), ele desativa o badge "Edit with Lovable" antes de dar a oferta por pronta — ver `CLAUDE.md` §7.
+Nota: este zip é a **entrada** da publicação, não o fim. Logo depois, o orquestrador publica o zip num **projeto Lovable real via MCP** (upload, `create_project`, `deploy_project`, badge escondido), seguindo `references/deploy-lovable.md`. Por isso: presell com `OFFER_URL` relativo `/oferta/index.html` (nada de URL da Vercel), e tudo pronto para ir em `public/` sem build. Você não chama o MCP.
