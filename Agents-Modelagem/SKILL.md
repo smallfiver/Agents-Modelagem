@@ -179,9 +179,11 @@ Passo a passo:
    verdade. A única variação é o **mercado** (`BR` ou `não-BR`), já
    determinado automaticamente no passo 3. Precisa de transcrição (passo 5)
    pra extrair o preço. Se `tipo` ≠ front-end (upsell/downsell/back-redirect),
-   **pule este passo inteiro** — comercialização só faz sentido na página que
-   leva ao checkout do funil (a venda de verdade é o front-end do mesmo
-   funil, tratado em outra rodada).
+   **pule** — comercialização normalmente só faz sentido na página que leva
+   ao checkout do funil. Exceção: upsell/downsell que o original **já tem**
+   e o dono quer vender → oferta no produto próprio dele, Boleto desligado.
+   Funil novo (downsell/back-redirect que não existem) e ligação na
+   plataforma são do `funil-configurador` (seção 4b).
    - **Se `mercado = BR`** → `clonagem-kirvano` (só **lê** a Kirvano e devolve
      o **plano**: nome, preço, categoria, prompt de capa, ebook) → **você
      mostra** nome, preço e a capa (gerada por **você**, via Canva MCP direto
@@ -262,7 +264,7 @@ Passo a passo:
     cada, checkout(s) e valor, cloaking (com nível de certeza), tracking
     removido, pendências, e o resultado da conexão com Agents-Copy-VSL
     (passo 5.5) — se ainda estiver rodando, diga isso em vez de inventar o
-    resultado.
+    resultado. **Termine com a pergunta da seção 4b** (agente de funil).
 12. **Retrospecto** (regra do `CLAUDE.md`, seção 8): 3 linhas do que travou e o
     que automatizar; melhoria pequena e de baixo risco → aplique **via
     sub-agent/edição do repo**; maior → proponha ao usuário.
@@ -270,6 +272,21 @@ Passo a passo:
 Funil com várias páginas (front-end + upsell + downsell + back-redirect): rode
 o fluxo uma vez por página, em `C:\Ofertas\<Nome>\<tipo>\`, e registre a
 sequência do funil no relatório.
+
+## 4b. Fim: oferecer o agente de funil
+
+A modelagem termina na entrega (passo 11). **Não** complete funil (downsell
+novo, back-redirect novo) nem ligue upsell/downsell na plataforma aqui: isso é
+do agente `funil-configurador` (`~/.claude/agents/funil-configurador.md`).
+Separado de propósito, pra não embolar (regra do dono, 12/11/2026).
+
+Na entrega, **sempre** pergunte (uma linha, no fim):
+> "Gostaria de conectar o agente de funil para configurar back-redirect, upsell e downsell?"
+
+- **SIM** → leia `~/.claude/agents/funil-configurador.md` e siga-o **na
+  conversa principal** (ele fala com o dono e escreve via MCP; não despache
+  como sub-agent).
+- **NÃO** → encerre. Registre no relatório que o funil não foi ligado.
 
 ## 5. Só detectar cloaking
 
@@ -341,6 +358,11 @@ ativar o Agents-Copy-Criativo" — não finja que despachou.
 - `clonagem-vturb`: o embed/script do player **nunca** sai pela API — é
   sempre um link que o dono cola manualmente depois do upload. Ele avisa
   isso imediatamente ao terminar upload+CTA; não espere o usuário perguntar.
+- **Vturb: uma pasta por oferta** (ex.: "7 Améns oferta"). Dentro dela ficam
+  front, upsell e downsell.
+- **Pegadinha do upsell:** os botões SIM/NÃO podem ser revelados pelo
+  `_animation_delay` do Elementor (relógio da página), não pelo player. O
+  `clonagem-ocultos` lê isso.
 - **Toda oferta é sempre pra vender de verdade; só o mercado varia.** Não
   existe mais "clonar só pra estudo". `mercado = BR` roda Kirvano + Vturb;
   `mercado = não-BR` pula só a Kirvano — ela liquida apenas BRL (confirmado
